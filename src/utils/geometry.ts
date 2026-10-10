@@ -4,32 +4,27 @@ import type { Desa, Pt } from "../data/banjarMap";
 export const toPath = (pts: Pt[]): string =>
   pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x},${y}`).join(" ") + " Z";
 
-/** Luas poligon (selalu positif) */
-export function polygonArea(pts: Pt[]): number {
-  let s = 0;
-  for (let i = 0; i < pts.length; i++) {
-    const [x1, y1] = pts[i];
-    const [x2, y2] = pts[(i + 1) % pts.length];
-    s += x1 * y2 - x2 * y1;
-  }
-  return Math.abs(s / 2);
+/** Kotak pembatas (bounding box) dari sekumpulan desa */
+export interface BBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
-/** Titik tengah (centroid) poligon, dipakai untuk posisi label */
-export function centroid(pts: Pt[]): Pt {
-  let a = 0;
-  let cx = 0;
-  let cy = 0;
-  for (let i = 0; i < pts.length; i++) {
-    const [x1, y1] = pts[i];
-    const [x2, y2] = pts[(i + 1) % pts.length];
-    const f = x1 * y2 - x2 * y1;
-    a += f;
-    cx += (x1 + x2) * f;
-    cy += (y1 + y2) * f;
-  }
-  a /= 2;
-  return [cx / (6 * a), cy / (6 * a)];
+export function bboxOf(list: Desa[]): BBox {
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
+  for (const d of list)
+    for (const [x, y] of d.points) {
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+    }
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
 
 interface Edge {
