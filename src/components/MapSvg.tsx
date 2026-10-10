@@ -60,16 +60,27 @@ function MapSvg({ selection, hover, mode, showLabels, exploring, onSelect, onHov
     }
   };
 
+  /** Wilayah yang sedang "terangkat" (digambar sebagai balok 3D oleh canvas di atas peta). */
+  const isLifted = (d: Desa) =>
+    exploring && (selectedDesaId !== null ? d.id === selectedDesaId : selection.type === "kecamatan" && d.kecamatanId === selection.id);
+
+  // Wilayah terangkat digambar paling akhir agar area kliknya (yang bergeser ke atas) tidak tertutup tetangganya
+  const ordered = useMemo(
+    () => (exploring && hasFocus ? [...desaList.filter((d) => !isLifted(d)), ...desaList.filter(isLifted)] : desaList),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [exploring, hasFocus, selectedDesaId, activeKecId]
+  );
+
   const labelCls = (d: Desa) => {
     const dimKec = hasFocus && d.kecamatanId !== activeKecId;
     const dimDesa = selectedDesaId !== null && d.id !== selectedDesaId && d.kecamatanId === activeKecId;
-    return `desa-label${dimKec ? " is-dim" : ""}${dimDesa ? " is-soft" : ""}${d.id === selectedDesaId ? " is-selected" : ""}`;
+    return `desa-label${dimKec ? " is-dim" : ""}${dimDesa ? " is-soft" : ""}${d.id === selectedDesaId ? " is-selected" : ""}${isLifted(d) ? " is-lifted" : ""}`;
   };
 
   return (
     <svg className={`map${exploring ? " is-explore" : ""}${hasFocus ? " has-focus" : ""}${showLabels ? "" : " no-labels"}`} preserveAspectRatio="none" role="group" aria-label="Peta Kota Banjar">
       <g strokeLinejoin="round">
-        {desaList.map((d) => {
+        {ordered.map((d) => {
           const kec = kecById.get(d.kecamatanId)!;
           const dimKec = hasFocus && d.kecamatanId !== activeKecId;
           const dimDesa = selectedDesaId !== null && d.id !== selectedDesaId && d.kecamatanId === activeKecId;
@@ -80,8 +91,8 @@ function MapSvg({ selection, hover, mode, showLabels, exploring, onSelect, onHov
               data-desa={d.id}
               d={toPath(d.points)}
               fill={kec.fill}
-              stroke={kec.stroke === "#ffffff" ? "#e9d3d1" : kec.stroke}
-              strokeWidth={1}
+              stroke={kec.stroke}
+              strokeWidth={1.1}
               vectorEffect="non-scaling-stroke"
               className={cls}
               style={{ fillOpacity: 0, strokeOpacity: 0.16 }}

@@ -74,6 +74,18 @@ code { font-size: 0.92em; background: rgba(255,255,255,.08); padding: 1px 5px; b
 
 svg.map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
 canvas.three { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; }
+/* mode jelajah: balok terangkat diberi bayangan jatuh ke bawah */
+.is-explore canvas.three { filter: drop-shadow(0 16px 20px rgba(0, 0, 0, 0.42)); transition: opacity 0.4s ease; }
+
+/* label desa di atas balok yang terangkat (posisi & ukuran diatur oleh useExperience) */
+.lift-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.lift-label {
+  position: absolute; left: 0; top: 0; opacity: 0; white-space: nowrap; will-change: transform;
+  font-family: var(--sans); font-weight: 600; line-height: 1; user-select: none; color: #1b2616;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.95), 0 0 6px rgba(255, 255, 255, 0.7);
+  transition: opacity 0.4s ease;
+}
+.lift-label.is-selected { color: #0b1624; font-weight: 800; }
 
 /* gradasi gelap di bawah teks narasi supaya mudah dibaca; hilang saat jelajah */
 .shade {
@@ -127,6 +139,7 @@ canvas.three { position: absolute; inset: 0; width: 100%; height: 100%; pointer-
 .desa-label.is-dim { opacity: 0.2 !important; }
 .desa-label.is-soft { opacity: 0.5 !important; }
 .desa-label.is-selected { fill: #0b1624; font-weight: 800; }
+.desa-label.is-lifted { opacity: 0 !important; } /* digantikan label HTML di atas balok terangkat */
 .kec-label.is-hidden { opacity: 0 !important; }
 
 /* =====================================================================

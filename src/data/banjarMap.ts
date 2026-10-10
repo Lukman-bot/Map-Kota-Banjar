@@ -38,7 +38,7 @@ export const kecamatanList: Kecamatan[] = [
   { id: "banjar", name: "Banjar", fill: "#f6f3ee", stroke: "#aaa498", labelPos: [154, 192] },
   { id: "purwaharja", name: "Purwaharja", fill: "#cbb88f", stroke: "#f4ecd9", labelPos: [358, 101] },
   { id: "pataruman", name: "Pataruman", fill: "#8cba3f", stroke: "#e6f3c8", labelPos: [358, 276] },
-  { id: "langensari", name: "Langensari", fill: "#f5cdca", stroke: "#ffffff", labelPos: [610, 166] },
+  { id: "langensari", name: "Langensari", fill: "#f5cdca", stroke: "#b5827d", labelPos: [610, 166] },
 ];
 
 export const desaList: Desa[] = [

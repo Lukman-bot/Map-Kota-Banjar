@@ -61,7 +61,7 @@ export default function Beats({ onExplore, onRestart }: { onExplore: () => void;
         <p className="kicker">Dan di dalamnya</p>
         <div className="big">
           <b data-desa-num>0</b>
-          <span>Desa & Kelurahan</span>
+          <span>Desa dan Kelurahan</span>
         </div>
         <p className="sub">Tinggi balok mengikuti jumlah penduduk; dari total {fmt(profilKota.penduduk)} jiwa (data contoh).</p>
       </div>

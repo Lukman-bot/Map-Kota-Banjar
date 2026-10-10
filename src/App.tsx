@@ -8,14 +8,34 @@ import { desaList, kecamatanList } from "./data/banjarMap";
 import { profilDesa } from "./data/profiles";
 import { fitCamera, type Cam, type Visible } from "./hooks/useCamera";
 import { useElementSize } from "./hooks/useElementSize";
-import { useExperience } from "./hooks/useExperience";
+import { useExperience, type Focus } from "./hooks/useExperience";
+import { useSmoothScroll } from "./hooks/useSmoothScroll";
 import { useSelection, type Selection } from "./hooks/useSelection";
-import { bboxOf } from "./utils/geometry";
+import { bboxOf, type BBox } from "./utils/geometry";
 import { desaById, desaByKec, fmt, kecById, profilKec, sumSekolah } from "./utils/stats";
 
 const NONE: Selection = { type: "none" };
 const PANEL_W = 420; // lebar card (desktop)
 const MOBILE_BP = 820;
+
+/** Tinggi angkatan (satuan peta) menurut ukuran wilayah: wilayah kecil tidak terlalu tinggi, yang besar tidak menjulang. */
+const liftFor = (b: BBox) => Math.min(30, Math.max(8, Math.min(b.w, b.h) * 0.18));
+
+/** Wilayah apa yang diangkat untuk pilihan ini? */
+function focusOf(sel: Selection): Focus | null {
+  if (sel.type === "kecamatan") {
+    const list = desaByKec.get(sel.id) ?? [];
+    if (!list.length) return null;
+    const h = liftFor(bboxOf(list));
+    return { heights: new Map(list.map((d) => [d.id, h])), selDesa: null, kecDesa: list[0].id };
+  }
+  if (sel.type === "desa") {
+    const d = desaById.get(sel.id);
+    if (!d) return null;
+    return { heights: new Map([[d.id, liftFor(bboxOf([d]))]]), selDesa: d.id, kecDesa: null };
+  }
+  return null;
+}
 
 export default function App() {
   const [root, size] = useElementSize<HTMLDivElement>();
@@ -68,12 +88,16 @@ export default function App() {
 
   const exp = useExperience({ root, canvas, size, visFull, visStory, visEnd, exploringRef });
 
+  // Scroll mouse/trackpad dibuat berinersia (terasa lebih berat & halus) selama pengantar berlangsung
+  useSmoothScroll(!explore && size.w > 0);
+
   // ---------- Kamera mengikuti pilihan (zoom in / zoom out) ----------
   const lastSize = useRef({ w: 0, h: 0 });
   const wasExplore = useRef(false);
   useEffect(() => {
     if (!explore || size.w === 0) {
       wasExplore.current = false;
+      if (!explore) exp.setFocus(null, true); // kembali ke pengantar: turunkan semua balok
       return;
     }
     const resized = lastSize.current.w !== size.w || lastSize.current.h !== size.h;
@@ -90,8 +114,21 @@ export default function App() {
     const instant = resized || (!wasExplore.current && selection.type !== "none");
     wasExplore.current = true;
     exp.flyTo(target, { instant });
+    exp.setFocus(focusOf(selection), instant); // wilayah terpilih terangkat seperti balok 3D
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [explore, selection, size.w, size.h, visCard]);
+
+  // Hover → balok yang terangkat ikut menyala
+  useEffect(() => {
+    exp.setHover(hover.type === "kecamatan" ? (desaByKec.get(hover.id) ?? []).map((d) => d.id) : hover.type === "desa" ? [hover.id] : []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hover]);
+
+  // Desa yang labelnya digambar di atas balok terangkat
+  const liftedDesa = useMemo(
+    () => (selection.type === "desa" ? [desaById.get(selection.id)!].filter(Boolean) : selection.type === "kecamatan" ? (desaByKec.get(selection.id) ?? []) : []),
+    [selection]
+  );
 
   // ---------- Kunci scroll saat jelajah ----------
   useEffect(() => {
@@ -189,6 +226,15 @@ export default function App() {
           onHover={onHover}
         />
         <canvas ref={canvas} className="three" aria-hidden />
+        {explore && showLabels && (
+          <div className="lift-labels" aria-hidden>
+            {liftedDesa.map((d) => (
+              <span key={d.id} data-lift-label={d.id} className={`lift-label${selection.type === "desa" ? " is-selected" : ""}`}>
+                {d.name}
+              </span>
+            ))}
+          </div>
+        )}
         <div className={`veil${hasFocus ? " on" : ""}`} aria-hidden />
         <div className="shade" aria-hidden />
       </div>

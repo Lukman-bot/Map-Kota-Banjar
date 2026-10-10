@@ -21,14 +21,21 @@ export interface SceneParams {
   gap: number;
   flat: number;
   tilt: number;
+  /** true = hanya tampilkan wilayah yang sedang "terangkat" (mode jelajah) */
+  only?: boolean;
 }
 
 interface Item {
   mesh: THREE.Mesh;
   mat: THREE.MeshStandardMaterial;
+  id: string;
   kec: number;
   idx: number;
   hd: number; // tinggi akhir (fase desa)
+  lift: number; // tinggi angkatan saat ini (mode jelajah)
+  from: number; // tinggi angkatan awal tween
+  to: number; // tinggi angkatan tujuan tween
+  hi: boolean; // sedang di-hover
 }
 
 const H_KEC = 36; // tinggi balok saat fase kecamatan (satuan peta)
@@ -97,7 +104,7 @@ export class BanjarScene {
       this.scene.add(mesh);
 
       const hd = H_MIN + (H_MAX - H_MIN) * Math.sqrt(profilDesa[d.id].penduduk / maxPop);
-      this.items.push({ mesh, mat, kec: kecIdx.get(d.kecamatanId)!, idx: i, hd });
+      this.items.push({ mesh, mat, id: d.id, kec: kecIdx.get(d.kecamatanId)!, idx: i, hd, lift: 0, from: 0, to: 0, hi: false });
     });
     this.update(this.p);
   }
@@ -128,19 +135,48 @@ export class BanjarScene {
     cam.lookAt(target);
   }
 
+  // ---------- Mode jelajah: wilayah terpilih "terangkat" ----------
+
+  /** Tetapkan tinggi tujuan (satuan peta) tiap desa; yang tidak ada di daftar turun ke 0. */
+  setLiftTargets(heights: Map<string, number>) {
+    for (const it of this.items) {
+      it.from = it.lift;
+      it.to = heights.get(it.id) ?? 0;
+    }
+  }
+
+  /** t = 0 → tinggi awal, t = 1 → tinggi tujuan. */
+  setLiftProgress(t: number) {
+    for (const it of this.items) it.lift = it.from + (it.to - it.from) * t;
+  }
+
+  getLift(id: string) {
+    return this.items.find((i) => i.id === id)?.lift ?? 0;
+  }
+
+  maxLift() {
+    return this.items.reduce((m, i) => Math.max(m, i.lift), 0);
+  }
+
+  /** Desa yang menyala lembut (mis. sedang di-hover). */
+  setHighlight(ids: Set<string>) {
+    for (const it of this.items) it.hi = ids.has(it.id);
+  }
+
   update(p: SceneParams) {
     this.p = p;
     const gapScale = 1 - GAP_SHRINK * clamp01(p.gap);
     for (const it of this.items) {
       const kj = smooth(clamp01(p.kProg - it.kec));
       const dj = smooth(clamp01(p.dProg - it.idx));
-      const h = (H_KEC * kj + (it.hd - H_KEC * kj) * dj) * (1 - clamp01(p.flat));
+      const h = (H_KEC * kj + (it.hd - H_KEC * kj) * dj) * (1 - clamp01(p.flat)) + it.lift;
+      it.mesh.visible = !p.only || it.lift > 0.01;
       it.mesh.scale.set(gapScale, gapScale, Math.max(h, 0.001));
       // desa yang sedang naik menyala sebentar
       const raw = clamp01(p.dProg - it.idx);
       const rawK = clamp01(p.kProg - it.kec);
       const pulse = Math.max(raw > 0 && raw < 1 ? Math.sin(Math.PI * raw) : 0, rawK > 0 && rawK < 1 ? Math.sin(Math.PI * rawK) : 0);
-      it.mat.emissiveIntensity = pulse * 0.55;
+      it.mat.emissiveIntensity = Math.max(pulse * 0.55, it.hi && it.lift > 0.01 ? 0.26 : 0);
     }
     this.setCamera(this.cam);
   }
