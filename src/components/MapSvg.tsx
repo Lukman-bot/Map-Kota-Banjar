@@ -1,5 +1,5 @@
 import { memo, useMemo, type KeyboardEvent, type PointerEvent } from "react";
-import { desaList, kecamatanList, type Desa } from "../data/banjarMap";
+import { MAP_HEIGHT, MAP_WIDTH, desaList, kecamatanList, type Desa } from "../data/banjarMap";
 import { kecamatanBorderPath, outlinePath, toPath } from "../utils/geometry";
 import { desaById, desaByKec, kecById } from "../utils/stats";
 import type { Selection } from "../hooks/useSelection";
@@ -78,7 +78,7 @@ function MapSvg({ selection, hover, mode, showLabels, exploring, onSelect, onHov
   };
 
   return (
-    <svg className={`map${exploring ? " is-explore" : ""}${hasFocus ? " has-focus" : ""}${showLabels ? "" : " no-labels"}`} preserveAspectRatio="none" role="group" aria-label="Peta Kota Banjar">
+    <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} className={`map${exploring ? " is-explore" : ""}${hasFocus ? " has-focus" : ""}${showLabels ? "" : " no-labels"}`} preserveAspectRatio="none" role="group" aria-label="Peta Kota Banjar">
       <g strokeLinejoin="round">
         {ordered.map((d) => {
           const kec = kecById.get(d.kecamatanId)!;

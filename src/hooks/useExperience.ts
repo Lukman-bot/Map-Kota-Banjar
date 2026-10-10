@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, type RefObject } from "react";
+import { useCallback, useRef, type RefObject } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
@@ -7,8 +7,10 @@ import { BanjarScene } from "../three/BanjarScene";
 import { bboxOf } from "../utils/geometry";
 import { desaById, desaByKec } from "../utils/stats";
 import { fitCamera, lerpCam, prefersReducedMotion, type Cam, type Visible } from "./useCamera";
+import { useIsoLayoutEffect } from "./useIsoLayoutEffect";
 
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+// Plugin hanya didaftarkan di browser (modul ini ikut diimpor saat SSR).
+if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 /**
  * Panjang scroll pengantar (kelipatan tinggi layar).
@@ -161,7 +163,7 @@ export function useExperience({ root, canvas, size, visFull, visStory, visEnd, e
   paintRef.current = paintExplore;
 
   // ---------- Adegan Three.js ----------
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     if (!canvas.current) return;
     const scene = new BanjarScene(canvas.current);
     sceneRef.current = scene;
@@ -171,12 +173,12 @@ export function useExperience({ root, canvas, size, visFull, visStory, visEnd, e
     };
   }, [canvas]);
 
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     if (size.w > 0) sceneRef.current?.resize(size.w, size.h);
   }, [size.w, size.h]);
 
   // ---------- Timeline scroll ----------
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     const el = root.current;
     if (!el || size.w === 0) return;
 

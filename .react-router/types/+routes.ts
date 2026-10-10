@@ -14,14 +14,22 @@ type Pages = {
   "/": {
     params: {};
   };
-  "/kecamatan/:kecamatanSlug": {
+  "/kecamatan/:id": {
     params: {
-      "kecamatanSlug": string;
+      "id": string;
     };
   };
-  "/desa/:desaSlug": {
+  "/desa/:id": {
     params: {
-      "desaSlug": string;
+      "id": string;
+    };
+  };
+  "/open-data": {
+    params: {};
+  };
+  "/open-data/:slug": {
+    params: {
+      "slug": string;
     };
   };
   "/sitemap.xml": {
@@ -30,45 +38,70 @@ type Pages = {
   "/robots.txt": {
     params: {};
   };
+  "/*": {
+    params: {
+      "*": string;
+    };
+  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/kecamatan/:kecamatanSlug" | "/desa/:desaSlug" | "/sitemap.xml" | "/robots.txt";
+    page: "/" | "/kecamatan/:id" | "/desa/:id" | "/open-data" | "/open-data/:slug" | "/sitemap.xml" | "/robots.txt" | "/*";
   };
-  "routes/layout-peta.tsx": {
-    id: "routes/layout-peta";
-    page: "/" | "/kecamatan/:kecamatanSlug" | "/desa/:desaSlug";
+  "routes/map-layout.tsx": {
+    id: "routes/map-layout";
+    page: "/" | "/kecamatan/:id" | "/desa/:id";
   };
-  "routes/beranda.tsx": {
-    id: "routes/beranda";
+  "routes/map-home.tsx": {
+    id: "routes/map-home";
     page: "/";
   };
-  "routes/kecamatan-detail.tsx": {
-    id: "routes/kecamatan-detail";
-    page: "/kecamatan/:kecamatanSlug";
+  "routes/map-kecamatan.tsx": {
+    id: "routes/map-kecamatan";
+    page: "/kecamatan/:id";
   };
-  "routes/desa-detail.tsx": {
-    id: "routes/desa-detail";
-    page: "/desa/:desaSlug";
+  "routes/map-desa.tsx": {
+    id: "routes/map-desa";
+    page: "/desa/:id";
   };
-  "routes/sitemap-xml.ts": {
-    id: "routes/sitemap-xml";
+  "routes/open-data-layout.tsx": {
+    id: "routes/open-data-layout";
+    page: "/open-data" | "/open-data/:slug";
+  };
+  "routes/open-data-index.tsx": {
+    id: "routes/open-data-index";
+    page: "/open-data";
+  };
+  "routes/open-data-detail.tsx": {
+    id: "routes/open-data-detail";
+    page: "/open-data/:slug";
+  };
+  "routes/sitemap.ts": {
+    id: "routes/sitemap";
     page: "/sitemap.xml";
   };
-  "routes/robots-txt.ts": {
-    id: "routes/robots-txt";
+  "routes/robots.ts": {
+    id: "routes/robots";
     page: "/robots.txt";
+  };
+  "routes/not-found.tsx": {
+    id: "routes/not-found";
+    page: "/*";
   };
 };
 
 type RouteModules = {
-  "root": typeof import("./app/root.tsx");
-  "routes/layout-peta": typeof import("./app/routes/layout-peta.tsx");
-  "routes/beranda": typeof import("./app/routes/beranda.tsx");
-  "routes/kecamatan-detail": typeof import("./app/routes/kecamatan-detail.tsx");
-  "routes/desa-detail": typeof import("./app/routes/desa-detail.tsx");
-  "routes/sitemap-xml": typeof import("./app/routes/sitemap-xml.ts");
-  "routes/robots-txt": typeof import("./app/routes/robots-txt.ts");
+  "root": typeof import("./src/root.tsx");
+  "routes/map-layout": typeof import("./src/routes/map-layout.tsx");
+  "routes/map-home": typeof import("./src/routes/map-home.tsx");
+  "routes/map-kecamatan": typeof import("./src/routes/map-kecamatan.tsx");
+  "routes/map-desa": typeof import("./src/routes/map-desa.tsx");
+  "routes/open-data-layout": typeof import("./src/routes/open-data-layout.tsx");
+  "routes/open-data-index": typeof import("./src/routes/open-data-index.tsx");
+  "routes/open-data-detail": typeof import("./src/routes/open-data-detail.tsx");
+  "routes/sitemap": typeof import("./src/routes/sitemap.ts");
+  "routes/robots": typeof import("./src/routes/robots.ts");
+  "routes/not-found": typeof import("./src/routes/not-found.tsx");
 };
