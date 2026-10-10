@@ -92,3 +92,8 @@ deskripsi SEO menambahkan "(data contoh)".
 
 ## Pintasan peta
 `/` cari · `Esc` naik satu level · klik desa terpilih = kembali ke kecamatannya · ↺ Pengantar = ulang dari awal
+
+## Troubleshooting: "Cannot find module '~/...' atau './+types/...'"
+1. Jalankan `npm install` lalu `npm run typecheck` (menjalankan `react-router typegen` yang membuat folder `.react-router/types`; folder ini tidak ikut di-commit).
+2. Pastikan editor memakai TypeScript proyek: VS Code → `Ctrl+Shift+P` → **TypeScript: Select TypeScript Version** → *Use Workspace Version*, lalu **TypeScript: Restart TS Server**.
+3. Kode aplikasi hanya ada di `src/`. Jangan membuat folder `app/` lagi: file di luar `include` tsconfig tidak mengenal alias `~/` dan tipe `+types`.
